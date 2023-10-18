@@ -1,10 +1,9 @@
-package si.fri.prpo.simplejdbcsample.servleti;
+package org.samo_lego.prve_vaje.servleti;
 
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
-import si.fri.prpo.simplejdbcsample.jdbc.BaseDao;
-import si.fri.prpo.simplejdbcsample.jdbc.Entiteta;
-import si.fri.prpo.simplejdbcsample.jdbc.Uporabnik;
-import si.fri.prpo.simplejdbcsample.jdbc.UporabnikDaoImpl;
+import org.samo_lego.prve_vaje.jdbc.BaseDao;
+import org.samo_lego.prve_vaje.jdbc.Uporabnik;
+import org.samo_lego.prve_vaje.jdbc.UporabnikDaoImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -44,11 +43,7 @@ public class PrviJdbcServlet extends HttpServlet {
 
         // izpis vseh uporabnikov
         writer.append("Seznam obstojecih uporabnikov:\n");
-        List<Entiteta> uporabniki = uporabnikDao.vrniVse();
-        uporabniki.stream().forEach(u -> writer.append(u.toString() + "\n"));
-
-
-
-
+        List<Uporabnik> uporabniki = uporabnikDao.vrniVse();
+        uporabniki.forEach(u -> writer.append(u.toString()).append("\n"));
     }
 }

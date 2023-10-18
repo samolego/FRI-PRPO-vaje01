@@ -1,4 +1,4 @@
-package si.fri.prpo.simplejdbcsample.jdbc;
+package org.samo_lego.prve_vaje.jdbc;
 
 public class Uporabnik extends Entiteta {
 

@@ -1,83 +1,67 @@
-package si.fri.prpo.simplejdbcsample.jdbc;
+package org.samo_lego.prve_vaje.jdbc;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
-public class UporabnikDaoImpl implements BaseDao {
+public class UporabnikDaoImpl implements BaseDao<Uporabnik> {
 
-    private static       UporabnikDaoImpl instance;
+    private static final UporabnikDaoImpl instance = new UporabnikDaoImpl();
     private static final Logger           log = Logger.getLogger(UporabnikDaoImpl.class.getName());
 
-    private Connection connection;
+    private final Connection connection;
 
     public static UporabnikDaoImpl getInstance() {
-
-        if (instance == null) {
-            instance = new UporabnikDaoImpl();
-        }
-
         return instance;
     }
 
     public UporabnikDaoImpl() {
-        connection = getConnection();
+        this.getConnection();
+        this.connection = getConnection().orElse(null);
     }
 
     @Override
-    public Connection getConnection() {
+    public Optional<Connection> getConnection() {
         try {
             InitialContext initCtx = new InitialContext();
             DataSource ds = (DataSource) initCtx.lookup("jdbc/SimpleJdbcDS");
-            return ds.getConnection();
+
+            return Optional.of(ds.getConnection());
         }
         catch (Exception e) {
             log.severe("Cannot get connection: " + e.toString());
         }
-        return null;
+
+        return Optional.empty();
     }
 
     @Override
-    public Entiteta vrni(int id) {
+    public Optional<Uporabnik> vrni(int id) {
+        final String sql = "SELECT * FROM uporabnik WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-        PreparedStatement ps = null;
-
-        try {
-
-            String sql = "SELECT * FROM uporabnik WHERE id = ?";
-            ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return getUporabnikFromRS(rs);
-            }
-            else {
+                return Optional.of(getUporabnikFromRS(rs));
+            } else {
                 log.info("Uporabnik ne obstaja");
             }
 
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             log.severe(e.toString());
         }
-        finally {
-            if (ps != null) {
-                try {
-                    ps.close();
-                }
-                catch (SQLException e) {
-                    log.severe(e.toString());
-                }
-            }
-        }
-        return null;
+
+        return Optional.empty();
     }
 
     @Override
-    public void vstavi(Entiteta ent) {
+    public void vstavi(Uporabnik ent) {
         //programska koda za vstavljanje uporabnikov
 
     }
@@ -88,23 +72,19 @@ public class UporabnikDaoImpl implements BaseDao {
     }
 
     @Override
-    public void posodobi(Entiteta ent) {
+    public void posodobi(Uporabnik ent) {
         //programska koda za posodabljanje uporabnikov
 
     }
 
     @Override
-    public List<Entiteta> vrniVse() {
+    public List<Uporabnik> vrniVse() {
+        final String sql = "SELECT * FROM uporabnik";
+        final List<Uporabnik> entitete = new ArrayList<>();
 
-        List<Entiteta> entitete = new ArrayList<Entiteta>();
-        Statement st = null;
+        try (final Statement st = connection.createStatement()) {
 
-        try {
-
-            st = connection.createStatement();
-            String sql = "SELECT * FROM uporabnik";
             ResultSet rs = st.executeQuery(sql);
-
             while (rs.next()) {
                 entitete.add(getUporabnikFromRS(rs));
             }
@@ -113,24 +93,15 @@ public class UporabnikDaoImpl implements BaseDao {
         catch (SQLException e) {
             log.severe(e.toString());
         }
-        finally {
-            if (st != null) {
-                try {
-                    st.close();
-                }
-                catch (SQLException e) {
-                    log.severe(e.toString());
-                }
-            }
-        }
+
         return entitete;
     }
 
     private static Uporabnik getUporabnikFromRS(ResultSet rs) throws SQLException {
-
         String ime = rs.getString("ime");
         String priimek = rs.getString("priimek");
         String uporabniskoIme = rs.getString("uporabniskoime");
+
         return new Uporabnik(ime, priimek, uporabniskoIme);
 
     }
