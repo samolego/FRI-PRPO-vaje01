@@ -9,7 +9,6 @@ public class Uporabnik extends Entiteta {
     private String uporabniskoIme;
 
     public Uporabnik(String ime, String priimek, String uporabniskoIme) {
-        super();
         this.ime = ime;
         this.priimek = priimek;
         this.uporabniskoIme = uporabniskoIme;
@@ -41,16 +40,15 @@ public class Uporabnik extends Entiteta {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
 
-        sb.append("Ime: ");
-        sb.append(this.ime);
-        sb.append(" Priimek: ");
-        sb.append(this.priimek);
-        sb.append(" Uporabnisko ime: ");
-        sb.append(this.uporabniskoIme);
+        String sb = "Ime: " +
+                this.ime +
+                " Priimek: " +
+                this.priimek +
+                " Uporabnisko ime: " +
+                this.uporabniskoIme;
 
-        return sb.toString();
+        return sb;
     }
 
 }

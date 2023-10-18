@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 public class UporabnikDaoImpl implements BaseDao<Uporabnik> {
 
     private static final UporabnikDaoImpl instance = new UporabnikDaoImpl();
-    private static final Logger           log = Logger.getLogger(UporabnikDaoImpl.class.getName());
+    private static final Logger log = Logger.getLogger(UporabnikDaoImpl.class.getName());
 
     private final Connection connection;
 
@@ -24,19 +24,15 @@ public class UporabnikDaoImpl implements BaseDao<Uporabnik> {
         this.connection = getConnection().orElse(null);
     }
 
-    @Override
-    public Optional<Connection> getConnection() {
-        try {
-            InitialContext initCtx = new InitialContext();
-            DataSource ds = (DataSource) initCtx.lookup("jdbc/SimpleJdbcDS");
+    private static Uporabnik getUporabnikFromRS(ResultSet rs) throws SQLException {
+        String ime = rs.getString("ime");
+        String priimek = rs.getString("priimek");
+        String uporabniskoIme = rs.getString("uporabniskoime");
 
-            return Optional.of(ds.getConnection());
-        }
-        catch (Exception e) {
-            log.severe("Cannot get connection: " + e.toString());
-        }
+        final var res = new Uporabnik(ime, priimek, uporabniskoIme);
+        res.setId(rs.getInt("id"));
 
-        return Optional.empty();
+        return res;
     }
 
     @Override
@@ -61,20 +57,59 @@ public class UporabnikDaoImpl implements BaseDao<Uporabnik> {
     }
 
     @Override
-    public void vstavi(Uporabnik ent) {
-        //programska koda za vstavljanje uporabnikov
+    public Optional<Connection> getConnection() {
+        try {
+            InitialContext initCtx = new InitialContext();
+            DataSource ds = (DataSource) initCtx.lookup("jdbc/SimpleJdbcDS");
 
+            return Optional.of(ds.getConnection());
+        } catch (Exception e) {
+            log.severe("Cannot get connection: " + e);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public void vstavi(Uporabnik ent) {
+        final String sql = "INSERT INTO uporabnik (ime, priimek, uporabniskoime) VALUES (?, ?, ?)";
+
+        try (final PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, ent.getIme());
+            st.setString(2, ent.getPriimek());
+            st.setString(3, ent.getUporabniskoIme());
+
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.severe(e.toString());
+        }
     }
 
     @Override
     public void odstrani(int id) {
-        //programska koda za odstranjevanje uporabnikov
+        final String sql = "DELETE FROM uporabnik WHERE id = ?";
+        try (final PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.severe(e.toString());
+        }
     }
 
     @Override
     public void posodobi(Uporabnik ent) {
-        //programska koda za posodabljanje uporabnikov
+        final String sql = "UPDATE uporabnik SET ime = ?, priimek = ?, uporabniskoime = ? WHERE id = ?";
+        try (final PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, ent.getIme());
+            ps.setString(2, ent.getPriimek());
+            ps.setString(3, ent.getUporabniskoIme());
+            ps.setInt(4, ent.getId());
 
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.severe(e.toString());
+        }
     }
 
     @Override
@@ -89,20 +124,10 @@ public class UporabnikDaoImpl implements BaseDao<Uporabnik> {
                 entitete.add(getUporabnikFromRS(rs));
             }
 
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             log.severe(e.toString());
         }
 
         return entitete;
-    }
-
-    private static Uporabnik getUporabnikFromRS(ResultSet rs) throws SQLException {
-        String ime = rs.getString("ime");
-        String priimek = rs.getString("priimek");
-        String uporabniskoIme = rs.getString("uporabniskoime");
-
-        return new Uporabnik(ime, priimek, uporabniskoIme);
-
     }
 }
